@@ -2,19 +2,21 @@ package main
 
 import (
 	"bufio"
-	"bytes"
+	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"net/textproto"
+	"os"
+	"strconv"
 )
 
-func main() {
+func server(port int) {
 	// Listen on all interfaces
-	listener, LisErr := net.Listen("tcp", "[::1]:8081")
+	listener, LisErr := net.Listen("tcp", "0.0.0.0:"+strconv.Itoa(port))
 	if LisErr != nil {
 		log.Fatal(LisErr)
+		listener.Close()
 	}
 
 	fmt.Println("Server started listening at ", listener.Addr())
@@ -29,9 +31,9 @@ func main() {
 			conn.Close()
 		}
 		// defer conn.Close()
-
-		fmt.Println("\nConnection Details:")
-		fmt.Println("Remote Address: ", conn.RemoteAddr(), "\n")
+		fmt.Printf("\n1 Connection accepted.\n")
+		fmt.Println("Connection Details:")
+		fmt.Printf("Remote Address: %s\n", conn.RemoteAddr())
 
 		/*
 			for {
@@ -49,11 +51,10 @@ func main() {
 		reader := bufio.NewReader(conn)
 		tp := textproto.NewReader(reader)
 
-		fmt.Println("Request: \n")
+		fmt.Printf("Request:\n\n")
 		for {
 			// read one line (ended with \n or \r\n)
 			line, _ := tp.ReadLine()
-
 			fmt.Println(line)
 			if line == "" {
 				break
@@ -64,6 +65,51 @@ func main() {
 	}
 
 }
+
+func client(port int) {
+	// Create a connection with remote machine
+	conn, connErr := net.Dial("tcp", ":"+strconv.Itoa(port))
+	if connErr != nil {
+		// log.Fatal(connErr)
+		fmt.Printf("Could not connect to %s, target machine may be down or refused connection", conn.RemoteAddr())
+		conn.Close()
+		os.Exit(0)
+	}
+	defer conn.Close()
+
+	fmt.Printf("\nConnected.\n")
+	fmt.Println("Connection Details:")
+	fmt.Printf("Remote Address: %s\n", conn.RemoteAddr())
+	fmt.Printf("Local Address: %s\n", conn.LocalAddr())
+
+	// reader := bufio.NewReader(conn)
+	// tp := textproto.NewReader(reader)
+
+	// for {
+	// 	// read one line (ended with \n or \r\n)
+	// 	line, _ := tp.ReadLine()
+	// 	fmt.Println(line)
+	// 	if line == "" {
+	// 		break
+	// 	}
+	// }
+}
+
+func main() {
+	mode := flag.String("mode", "server", "Select a mode: server/client")
+	port := flag.Int("port", 8081, "Select a port (default: 8081)")
+	flag.Parse()
+
+	if *mode == "server" {
+		server(*port)
+	} else {
+		client(*port)
+	}
+
+}
+
+/*
+
 
 func mainu() {
 	conn, err := net.Dial("tcp", "google.com:80")
@@ -77,9 +123,6 @@ func mainu() {
 	io.Copy(&buf, conn)
 	fmt.Println("total size:", buf.Len())
 }
-
-/*
-
 
 GET / HTTP/1.1
 Cache-Control: max-age=0
