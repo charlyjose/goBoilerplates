@@ -9,6 +9,7 @@ import (
 	"net/textproto"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func server(port int) {
@@ -97,10 +98,10 @@ func client(port int) {
 
 func main() {
 	mode := flag.String("mode", "server", "Select a mode: server/client")
-	port := flag.Int("port", 8081, "Select a port (default: 8081)")
+	port := flag.Int("port", 8081, "Select a port")
 	flag.Parse()
 
-	if *mode == "server" {
+	if strings.ToLower(*mode) == "server" {
 		server(*port)
 	} else {
 		client(*port)
