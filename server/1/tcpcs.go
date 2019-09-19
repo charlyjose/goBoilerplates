@@ -14,11 +14,13 @@ import (
 
 func server(port int) {
 	// Listen on all interfaces
-	listener, LisErr := net.Listen("tcp", "0.0.0.0:"+strconv.Itoa(port))
-	if LisErr != nil {
+	listener, lisErr := net.Listen("tcp", "0.0.0.0:"+strconv.Itoa(port))
+	if lisErr != nil {
 		log.Fatal(LisErr)
 		listener.Close()
+		os.Exit(0)
 	}
+	defer listener.Close()
 
 	fmt.Println("Server started listening at ", listener.Addr())
 
@@ -31,7 +33,7 @@ func server(port int) {
 			log.Fatal(conErr)
 			conn.Close()
 		}
-		// defer conn.Close()
+		defer conn.Close()
 		fmt.Printf("\n1 Connection accepted.\n")
 		fmt.Println("Connection Details:")
 		fmt.Printf("Remote Address: %s\n", conn.RemoteAddr())
@@ -61,7 +63,7 @@ func server(port int) {
 				break
 			}
 		}
-		conn.Close()
+		// conn.Close()
 		fmt.Println("\nConnection Closed")
 	}
 
